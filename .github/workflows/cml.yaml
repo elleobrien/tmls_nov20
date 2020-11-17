@@ -1,0 +1,31 @@
+name: wine-quality-model
+on: [push]
+jobs:
+  run:
+    runs-on: [ubuntu-latest]
+    container: docker://dvcorg/cml-py3:latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Train model for wine quality
+        env:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+
+          # Your ML workflow goes here
+          pip install -r requirements.txt
+          python train.py
+          
+          # Add text
+          echo "## Metrics" > reports.md
+          cat metrics.txt >> reports.md
+          
+          # Add pictures
+          echo "## Data viz" >> reports.md
+          echo "### Feature importance" >> reports.md
+          cml-publish feature_importance.png --md >> reports.md 
+          
+          echo "### Residuals" >> reports.md
+          cml-publish residuals.png --md >> reports.md
+          
+          # Send the report!
+          cml-send-comment reports.md
